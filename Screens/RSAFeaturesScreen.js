@@ -11,6 +11,7 @@ function RSAFeaturesScreen(props) {
   const [visible, setVisible] = React.useState(false);
   const [mode, setMode] = React.useState(true);
   const [currentPublicKey, setCurrentPublicKey] = useState(null);
+  const [currentPrivateKey, setCurrentPrivateKey] = useState(null);
   const [textInput1, setTextInput1] = useState("");
   const [textInput2, setTextInput2] = useState("");
   const [visible1, setVisible1] = React.useState(false);
@@ -22,14 +23,28 @@ function RSAFeaturesScreen(props) {
 
   const handleEncrypt = () => {
     const rsa = new RSAKey();
-    console.log(currentPublicKey);
-    let key = JSON.stringify({ n: currentPublicKey, e: 10001 });
-
+    // console.log(currentPublicKey);
+    let key = JSON.stringify({ n: currentPublicKey, e: "10001" });
     if (currentPublicKey != null && textInput1 !== "") {
+      console.log("Public KEy: " + key);
       rsa.setPublicString(key);
       console.log(textInput1);
       const encryptedMsg = rsa.encrypt(textInput1);
       setTextInput2(encryptedMsg);
+    } else {
+      alert("Select Public Key");
+    }
+  };
+  const handleDecrypt = () => {
+    var rsa2 = new RSAKey();
+
+    if (currentPrivateKey != null && textInput2 !== "") {
+      rsa2.setPrivateString(currentPrivateKey);
+      var encrypted = textInput2;
+      // console.log("Enc " + encrypted);
+      var decrypted = rsa2.decrypt(encrypted);
+      // console.log("\nhere" + decrypted);
+      setTextInput1(decrypted);
     } else {
       alert("Select Public Key");
     }
@@ -97,7 +112,12 @@ function RSAFeaturesScreen(props) {
               onPress={() => handleImport(val, props.navigation)}
               title="IMPORT PUBLIC KEY FILE"
             />
-            <Menu.Item onPress={() => {}} title="SCAN PUBLIC KEY QR" />
+            <Menu.Item
+              onPress={() => {
+                props.navigation.navigate("QRScan");
+              }}
+              title="SCAN PUBLIC KEY QR"
+            />
             <Menu.Item
               onPress={() => {
                 props.navigation.navigate("KeyGen");
@@ -127,7 +147,10 @@ function RSAFeaturesScreen(props) {
             <Button
               mode="outlined"
               color={!mode ? "purple" : "grey"}
-              onPress={() => setMode(false)}
+              onPress={() => {
+                handleClearAll();
+                setMode(false);
+              }}
             >
               DECRYPTION
             </Button>
@@ -140,6 +163,7 @@ function RSAFeaturesScreen(props) {
                 multiline={true}
                 numberOfLines={9}
                 value={textInput2}
+                onChangeText={(text) => setTextInput2(text)}
               />
             ) : (
               <TextInput
@@ -182,13 +206,24 @@ function RSAFeaturesScreen(props) {
                     />
                   }
                 >
-                  {val.keyData.map((e) => (
-                    <Menu.Item
-                      style={{ marginRight: 50 }}
-                      onPress={() => {}}
-                      title={JSON.parse(e.privateKey).n}
-                    />
-                  ))}
+                  {val.keyData != null && val.keyData.length > 0
+                    ? val.keyData.map((e) => {
+                        // console.log("Public Key: " + e.publicKey);
+                        // console.log("Private Key: " + e.privateKey);
+                        return (
+                          <Menu.Item
+                            key={JSON.parse(e.privateKey).n}
+                            style={{ marginRight: 50 }}
+                            title={JSON.parse(e.privateKey).n}
+                            onPress={() => {
+                              // console.log(e.privateKey);
+                              setCurrentPrivateKey(e.privateKey);
+                              setVisible(false);
+                            }}
+                          />
+                        );
+                      })
+                    : null}
                 </Menu>
               </>
             ) : (
@@ -220,7 +255,11 @@ function RSAFeaturesScreen(props) {
           </View>
           {!mode ? (
             <View style={styles.decryptButtonContainer}>
-              <Button style={styles.decryptButton} mode="contained">
+              <Button
+                style={styles.decryptButton}
+                mode="contained"
+                onPress={handleDecrypt}
+              >
                 DECRYPT
               </Button>
             </View>

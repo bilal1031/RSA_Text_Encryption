@@ -16,7 +16,7 @@ import {
   Checkbox,
 } from "react-native-paper";
 import RSAKey from "react-native-rsa";
-import * as SecureStore from "expo-secure-store";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import context from "../Context/context";
 
@@ -37,7 +37,8 @@ function KeyGenerateScreen(props) {
 
   const keyGen = async () => {
     let rsa = new RSAKey();
-    rsa.generate(checked, "10001");
+    const bits = Number(checked);
+    rsa.generate(bits, "10001");
 
     var publicKey = rsa.getPublicString(); // return json encoded string
     var privateKey = rsa.getPrivateString(); // return json encoded string
@@ -49,12 +50,14 @@ function KeyGenerateScreen(props) {
         passphrase: phrase,
         date: isChecked ? date : "",
       },
+      ...val.keyData,
     ];
 
     val.currentKey = publicKey;
     val.currentPassPhrase = phrase;
 
-    console.log("keyGen methond:" + publicKey);
+    // console.log("Public Key: " + publicKey);
+    // console.log("Private Key: " + privateKey);
 
     return 0;
   };
@@ -66,12 +69,12 @@ function KeyGenerateScreen(props) {
         keyGen().then(() => {
           // console.log(checked);
           // console.log(username);
-          SecureStore.setItemAsync("keys", JSON.stringify(val.keyData)).then(
-            () => {
-              // console.log(JSON.stringify(val.keyData));
-              props.navigation.navigate("Share");
-            }
-          );
+
+          const jsonValue = JSON.stringify(val.keyData);
+          console.log(jsonValue);
+          AsyncStorage.setItem("@storage_Key", jsonValue).then(() => {
+            props.navigation.navigate("Share");
+          });
         }),
       10
     );
@@ -87,8 +90,9 @@ function KeyGenerateScreen(props) {
 
       <View style={styles.maincontainer}>
         {!isGenerating ? (
+          // Form view to take pre-key generation inputs from user
           <>
-            <Text style={styles.topText}>Enter Details</Text>
+            <Text style={styles.titleText}>Enter Details</Text>
             <TextInput
               label="Username (to identify your key)"
               value={username}
@@ -190,6 +194,12 @@ function KeyGenerateScreen(props) {
                   }
                 }}
                 style={styles.textInput}
+                theme={{
+                  colors: {
+                    primary: isMatching ? primaryColor : "red",
+                    // accent: "#f1c40f",
+                  },
+                }}
                 mode="outlined"
                 right={() => (
                   <List.Icon icon="folder" style={{ width: 50, height: 50 }} />
@@ -208,14 +218,15 @@ function KeyGenerateScreen(props) {
             </Button>
           </>
         ) : (
+          // key generatiing process view
           <View
             style={{
               height: "100%",
               padding: 25,
             }}
           >
-            <Text style={styles.topText}>Generating Key Pair....</Text>
-            <Text style={styles.topText}>
+            <Text style={styles.titleText}>Generating Key Pair....</Text>
+            <Text style={styles.titleText}>
               The process of generating a key pair require large amount of
               random numbers.This may take a while
             </Text>
@@ -238,7 +249,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 20,
   },
-  topText: {
+  titleText: {
     color: "grey",
     fontSize: 22,
     marginBottom: 15,
