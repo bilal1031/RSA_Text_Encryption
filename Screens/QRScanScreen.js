@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Text, View, StyleSheet } from "react-native";
-import { BarCodeScanner, BarCodeSize } from "expo-barcode-scanner";
+import { BarCodeScanner } from "expo-barcode-scanner";
 import { Appbar, Button } from "react-native-paper";
 
-function QRScanScreen() {
+function QRScanScreen(props) {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
 
@@ -42,9 +42,17 @@ function QRScanScreen() {
         </View>
         <View style={styles.layerBottom}>
           {scanned && (
-            <Button onPress={() => setScanned(false)}>Tap to Scan Again</Button>
+            <Button mode="contained" onPress={() => setScanned(false)}>
+              Tap to Scan Again
+            </Button>
           )}
-          <Button mode="contained" onPress={() => setScanned(false)}>
+          <Button
+            mode="contained"
+            onPress={() => {
+              setScanned(false);
+              props.navigation.pop();
+            }}
+          >
             Finish
           </Button>
         </View>

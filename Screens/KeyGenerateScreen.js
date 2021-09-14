@@ -43,6 +43,7 @@ function KeyGenerateScreen(props) {
     var publicKey = rsa.getPublicString(); // return json encoded string
     var privateKey = rsa.getPrivateString(); // return json encoded string
 
+    val.curUsername = username;
     val.keyData = [
       {
         publicKey: publicKey,

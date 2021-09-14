@@ -34,8 +34,8 @@ export default function App() {
       if (jsonValue !== null) {
         setKeyData(JSON.parse(jsonValue));
         // setLoading(false);
-        console.log(jsonValue);
-        alert("Your Private Keys Imported");
+        // console.log(jsonValue);
+        alert("Your Private Keys are imported");
       } else {
         setLoading(false);
         alert("No keys found!");

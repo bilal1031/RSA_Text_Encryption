@@ -15,6 +15,8 @@ function RSAFeaturesScreen(props) {
   const [textInput1, setTextInput1] = useState("");
   const [textInput2, setTextInput2] = useState("");
   const [visible1, setVisible1] = React.useState(false);
+  const [passphrase, setPassphrase] = React.useState("");
+  const [passCheck, setPassCheck] = React.useState("");
 
   const openMenu = () => setVisible1(true);
   const closeMenu = () => setVisible1(false);
@@ -37,16 +39,22 @@ function RSAFeaturesScreen(props) {
   };
   const handleDecrypt = () => {
     var rsa2 = new RSAKey();
-
-    if (currentPrivateKey != null && textInput2 !== "") {
-      rsa2.setPrivateString(currentPrivateKey);
-      var encrypted = textInput2;
-      // console.log("Enc " + encrypted);
-      var decrypted = rsa2.decrypt(encrypted);
-      // console.log("\nhere" + decrypted);
-      setTextInput1(decrypted);
+    if (passphrase === passCheck) {
+      if (currentPrivateKey != null && textInput2 !== "") {
+        rsa2.setPrivateString(currentPrivateKey);
+        var encrypted = textInput2;
+        var decrypted = rsa2.decrypt(encrypted);
+        // console.log("Enc " + encrypted);
+        // console.log("\nhere" + decrypted);
+        if (decrypted === null) {
+          alert("Decryption Failed!");
+        }
+        setTextInput1(decrypted);
+      } else {
+        alert("Select Private Key And fill the ciphertext");
+      }
     } else {
-      alert("Select Public Key");
+      alert("Passphrase Incorrect!");
     }
   };
 
@@ -61,6 +69,8 @@ function RSAFeaturesScreen(props) {
   const handleClearAll = () => {
     setTextInput1("");
     setTextInput2("");
+    setPassphrase("");
+    setPassCheck("");
     setCurrentPublicKey(null);
   };
 
@@ -124,7 +134,12 @@ function RSAFeaturesScreen(props) {
               }}
               title="CREATE NEW PUBLIC KEY"
             />
-            <Menu.Item onPress={() => {}} title="SETTINGS" />
+            <Menu.Item
+              onPress={() => {
+                props.navigation.navigate("Settings");
+              }}
+              title="SETTINGS"
+            />
           </Menu>
         </Appbar>
         <View style={styles.maincontainer}>
@@ -140,7 +155,10 @@ function RSAFeaturesScreen(props) {
             <Button
               mode="outlined"
               color={mode ? "purple" : "grey"}
-              onPress={() => setMode(true)}
+              onPress={() => {
+                handleClearAll();
+                setMode(true);
+              }}
             >
               ENCRYPTION
             </Button>
@@ -184,6 +202,8 @@ function RSAFeaturesScreen(props) {
                   mode="outlined"
                   label="Passphrase"
                   style={{ height: 40, width: "50%" }}
+                  value={passphrase}
+                  onChangeText={(text) => setPassphrase(text)}
                 />
 
                 <Menu
@@ -192,7 +212,11 @@ function RSAFeaturesScreen(props) {
                   anchor={
                     <TextInput
                       mode="outlined"
-                      label="Private Key"
+                      label={
+                        currentPrivateKey === null
+                          ? "Private Key"
+                          : JSON.parse(currentPrivateKey).n
+                      }
                       style={{ height: 40, width: 150 }}
                       right={
                         <TextInput.Icon
@@ -218,6 +242,7 @@ function RSAFeaturesScreen(props) {
                             onPress={() => {
                               // console.log(e.privateKey);
                               setCurrentPrivateKey(e.privateKey);
+                              setPassCheck(e.passphrase);
                               setVisible(false);
                             }}
                           />

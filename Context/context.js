@@ -4,6 +4,6 @@ export default React.createContext({
   keyData: [],
   currentPassPhrase: "",
   currentKey: "",
-  usename: "",
+  currUsername: "",
   importedKeys: [],
 });
